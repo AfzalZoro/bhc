@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Get Current Location with Area</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 100px;
+      background-color: #f0f0f0;
+    }
+
+    button {
+      padding: 15px 30px;
+      font-size: 18px;
+      cursor: pointer;
+      border: none;
+      background-color: #007BFF;
+      color: white;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #location {
+      margin-top: 20px;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <button onclick="getLocation()">Get My Location</button>
+  <div id="location"></div>
+
+  <script>
+    function getLocation() {
+      const locationDiv = document.getElementById("location");
+
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+
+            // Show lat/lon first
+            locationDiv.innerHTML = `Latitude: ${latitude}<br>Longitude: ${longitude}<br>Getting area name...`;
+
+            // Now fetch area name from Nominatim API
+            const url = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`;
+
+            fetch(url, {
+              headers: {
+                'User-Agent': 'location-app'
+              }
+            })
+              .then(response => response.json())
+              .then(data => {
+                const area = data.address.city || data.address.town || data.address.village || data.address.county || "Unknown area";
+                locationDiv.innerHTML += `<br>Area: ${area}`;
+              })
+              .catch(error => {
+                locationDiv.innerHTML += "<br>Could not retrieve area name.";
+                console.error(error);
+              });
+          },
+          (error) => {
+            locationDiv.innerHTML = "Error getting location: " + error.message;
+          }
+        );
+      } else {
+        locationDiv.innerHTML = "Geolocation is not supported by this browser.";
+      }
+    }
+  </script>
+
+</body>
+</html>
